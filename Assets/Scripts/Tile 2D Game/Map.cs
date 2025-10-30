@@ -25,17 +25,17 @@ public class Map
     public Tile castleTile;
     public Tile startTile;
 
-    private Tile[] towns;
-
+    //해안선 타일 모음
     public Tile[] CoastTiles
     {
-        
+
         get
         {
             return tiles.Where(t => t.autoTileId < (int)TileTypes.Grass).ToArray();
         }
     } 
 
+    //4방이 이동할 수 있을경우의 타일 모음
     public Tile[] LandTiles
     {
         get
@@ -49,13 +49,14 @@ public class Map
         this.rows = rows;
         this.cols = cols;
 
-        tiles = new Tile[rows * cols];
-        for (int i = 0; i  < tiles.Length; i++)
+        tiles = new Tile[rows * cols]; //타일 생성
+        for (int i = 0; i < tiles.Length; i++)
         {
             tiles[i] = new Tile();
-            tiles[i].id = i;
+            tiles[i].id = i; //id 할당
         }
 
+        //인접한 타일 할당
         for (var r = 0; r < rows; ++r)
         {
             for (var c = 0; c < cols; ++c)
@@ -92,7 +93,7 @@ public class Map
             tiles[i].UpdateAuotoFowId();
         }
     }
-
+    
     public bool CreateIsland(
         float erodePercent,
         int erodeIterations,
@@ -114,31 +115,31 @@ public class Map
         DecorateTiles(LandTiles, townPercent, TileTypes.Towns);
         DecorateTiles(LandTiles, monsterPercent, TileTypes.Monster);
 
-        towns = tiles.Where(x => x.autoTileId == (int)TileTypes.Towns).ToArray();
+        var towns = tiles.Where(x => x.autoTileId == (int)TileTypes.Towns).ToArray();
         ShuffleTiles(towns);
         startTile = towns[0];
 
-        var catsleTargets = tiles.Where(x => x.autoTileId <= (int)TileTypes.Grass &&
-            x.autoTileId != (int)TileTypes.Empty).ToArray();
-        castleTile = catsleTargets[Random.Range(0, catsleTargets.Length)];
+        castleTile = null;
 
-        return true;
-    }
-    
-    public bool ChangeTownToCastle(Tile player)
-    {
-        int Count = 0;
-        while (Count < 100)
+        foreach (var tile in tiles)
         {
-            if (AStar(player, towns[Random.Range(0, towns.Length)]))
+            if (tile.autoTileId == (int)TileTypes.Towns)
             {
-                return true;
+                if (FindPath(tile))
+                {
+                    castleTile = tile;
+                    castleTile.autoTileId = (int)TileTypes.Castle;
+                    break;
+                }
             }
-
-            Count++;
         }
         
-        return false;
+        if(castleTile == null)
+        {
+            return false;
+        }
+
+        return true;
     }
 
     public void DecorateTiles(Tile[] tiles, float percent, TileTypes tileType)
@@ -212,7 +213,7 @@ public class Map
             visited.Add(currentNode);
             foreach (var adjacent in currentNode.adjacents)
             {
-                if (!adjacent.CanMove || visited.Contains(adjacent))
+                if (adjacent == null || !adjacent.CanMove || visited.Contains(adjacent))
                 {
                     continue;
                 }
@@ -246,7 +247,7 @@ public class Map
 
         return true;
     }
-    
+
     protected int Heuristic(Tile a, Tile b)
     {
         //a의 x 인덱스와 y 인덱스
@@ -257,5 +258,15 @@ public class Map
         int by = b.id / cols;
 
         return Mathf.Abs(ax - bx) + Mathf.Abs(ay - by);
+    }
+    
+    public bool FindPath(Tile town)
+    {
+        if (town != startTile && AStar(startTile, town))
+        {
+            return true;
+        }
+
+        return false;
     }
 }

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class Stage : MonoBehaviour
@@ -90,7 +91,6 @@ public class Stage : MonoBehaviour
         }
         CreateGrid();
         CreatePlayer();
-
     }
     private void CreatePlayer()
     {
@@ -193,7 +193,7 @@ public class Stage : MonoBehaviour
         {
             for (int j = -radius; j <= radius; ++j)
             {
- 
+
                 if (i == radius || i == -radius || j == radius || j == -radius)
                 {
                     int x = centerX + j;
