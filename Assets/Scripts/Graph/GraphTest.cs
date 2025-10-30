@@ -9,6 +9,9 @@ public class GraphTest : MonoBehaviour
         BFS,
         DFSRecursiv,
         PathFindingBFS,
+        Dikjstra,
+        AStar,
+
     }
 
     public UIGraphNode nodePrefab;
@@ -22,10 +25,10 @@ public class GraphTest : MonoBehaviour
     {
         int[,] map = new int[5, 5]
         {
+            {1, -1, 1, 3, 1},
             {1, -1, 1, 1, 1},
-            {1, -1, 1, 1, 1},
-            {1, -1, 1, 1, 1},
-            {1, -1, 1, 1, 1},
+            {1, -1, 8, 5, 1},
+            {1, -1, 3, 1, 1},
             {1, 1, 1, 1, 1}
         };
 
@@ -75,6 +78,12 @@ public class GraphTest : MonoBehaviour
                 break;
             case Algorithm.PathFindingBFS:
                 search.PathFindingBFS(graph.nodes[startIndex], graph.nodes[endIndex]);
+                break;
+            case Algorithm.Dikjstra:
+                search.Dikjstra(graph.nodes[startIndex], graph.nodes[endIndex]);
+                break;
+            case Algorithm.AStar:
+                search.AStar(graph.nodes[startIndex], graph.nodes[endIndex]);
                 break;
         }
 
