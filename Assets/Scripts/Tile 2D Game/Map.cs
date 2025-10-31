@@ -259,7 +259,7 @@ public class Map
 
         return Mathf.Abs(ax - bx) + Mathf.Abs(ay - by);
     }
-    
+
     public bool FindPath(Tile town)
     {
         if (town != startTile && AStar(startTile, town))
@@ -268,5 +268,10 @@ public class Map
         }
 
         return false;
+    }
+    
+    public void ResetPath()
+    {
+        path.Clear();
     }
 }

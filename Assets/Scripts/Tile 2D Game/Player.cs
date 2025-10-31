@@ -27,9 +27,9 @@ public class Player : MonoBehaviour
         cts = new CancellationTokenSource();
     }
 
-    void Update()
+    private void Update()
     {
-        if (Input.GetMouseButtonDown(0) && !isMoving)
+        if (Input.GetMouseButtonDown(0))
         {
             var tileId = stage.ScreenPosToTileId(Input.mousePosition);
             if (stage.Map.tiles[tileId].Weight == int.MaxValue)
@@ -39,6 +39,8 @@ public class Player : MonoBehaviour
 
             if (stage.Map.AStar(currentTile, stage.Map.tiles[tileId]))
             {
+                CancelMovement();
+
                 currentPath = new List<Tile>(stage.Map.path);
                 currentPathIndex = 0;
                 MoveAlongPath().Forget();
@@ -50,31 +52,42 @@ public class Player : MonoBehaviour
     {
         isMoving = true;
 
-        // 경로의 각 타일을 순회
-        for (currentPathIndex = 0; currentPathIndex < currentPath.Count; currentPathIndex++)
+        try
         {
-            Tile targetTile = currentPath[currentPathIndex];
-            Vector3 startPos = transform.position;
-            Vector3 targetPos = stage.GetTilePos(targetTile.id);
-
-            float journey = 0f;
-            float distance = Vector3.Distance(startPos, targetPos);
-
-            // 한 타일에서 다음 타일로 부드럽게 이동
-            while (journey < distance)
+            // 경로의 각 타일을 순회
+            for (currentPathIndex = 0; currentPathIndex < currentPath.Count; currentPathIndex++)
             {
-                journey += moveSpeed * Time.deltaTime;
-                float t = Mathf.Clamp01(journey / distance);
-                transform.position = Vector3.Lerp(startPos, targetPos, t);
-                await UniTask.Yield();
+                Tile targetTile = currentPath[currentPathIndex];
+                Vector3 startPos = transform.position;
+                Vector3 targetPos = stage.GetTilePos(targetTile.id);
+
+                float journey = 0f;
+                float distance = Vector3.Distance(startPos, targetPos);
+
+                // 한 타일에서 다음 타일로 부드럽게 이동
+                while (journey < distance)
+                {
+                    cts.Token.ThrowIfCancellationRequested();
+
+                    journey += moveSpeed * Time.deltaTime;
+                    float t = Mathf.Clamp01(journey / distance);
+                    transform.position = Vector3.Lerp(startPos, targetPos, t);
+                    await UniTask.Yield(cancellationToken: cts.Token);
+                }
+
+                // 정확한 위치로 보정
+                transform.position = targetPos;
+                currentTile = targetTile;
             }
-
-            // 정확한 위치로 보정
-            transform.position = targetPos;
-            currentTile = targetTile;
         }
-
-        isMoving = false;
+        catch (System.Exception)
+        {
+            stage.Map.ResetPath();
+        }
+        finally
+        {
+            isMoving = false;   
+        }
     }
 
     public void CancelMovement()
