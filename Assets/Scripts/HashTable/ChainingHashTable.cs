@@ -12,6 +12,8 @@ public class ChainingHashTable<TKey, TValue> : IDictionary<TKey, TValue>
     private LinkedList<KeyValuePair<TKey, TValue>>[] table; //해시 테이블 배열
 
     private int size; //실제 배열 사이즈
+    public int Size{get { return size; }}
+
     private int count; //실제로 들어가있는 갯수
 
     public TValue this[TKey key]
@@ -100,6 +102,8 @@ public class ChainingHashTable<TKey, TValue> : IDictionary<TKey, TValue>
 
     public bool IsReadOnly => false;
 
+    public bool isSizeChanged { get; set; }
+
     public ChainingHashTable()
     {
         table = new LinkedList<KeyValuePair<TKey, TValue>>[DefaultCapacity];
@@ -110,6 +114,11 @@ public class ChainingHashTable<TKey, TValue> : IDictionary<TKey, TValue>
 
         size = DefaultCapacity;
         count = 0;
+    }
+
+    public LinkedList<KeyValuePair<TKey, TValue>> GetlistForKey(TKey key)
+    {
+        return table[GetProbeIndex(key)];
     }
 
     public int GetProbeIndex(TKey key)
@@ -143,6 +152,8 @@ public class ChainingHashTable<TKey, TValue> : IDictionary<TKey, TValue>
                 Add(kvp.Key, kvp.Value);
             }
         }
+
+        isSizeChanged = true;
     }
 
     public int FindIndex(TKey key)

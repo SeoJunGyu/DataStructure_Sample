@@ -24,9 +24,13 @@ public class OpenAddressingHashTable<TKey, TValue> : IDictionary<TKey, TValue>
     private bool[] deleted; //삭제된 인덱스인지 확인하는 용도
 
     private int size; //실제 배열 사이즈
+    public int Size{get { return size; }}
+    public bool isSizeChanged{ get; set; }
+
     private int count; //실제로 들어가있는 갯수
 
     private ProbingStrategy probingStrategy; //탐사 전략
+    public ProbingStrategy ProbingStrategy { get { return probingStrategy; } set { probingStrategy = value; }}
 
     public OpenAddressingHashTable(ProbingStrategy strategy = ProbingStrategy.Linear)
     {
@@ -168,10 +172,12 @@ public class OpenAddressingHashTable<TKey, TValue> : IDictionary<TKey, TValue>
                 Add(oldTable[i].Key, oldTable[i].Value);
             }
         }
+
+        isSizeChanged = true;
     }
     
     //키에 매칭되는 인덱스 찾기, 없으면 -1 반환
-    private int FindIndex(TKey key)
+    public int FindIndex(TKey key)
     {
         if (key == null)
         {
@@ -183,7 +189,7 @@ public class OpenAddressingHashTable<TKey, TValue> : IDictionary<TKey, TValue>
         do
         {
             int index = GetProbeIndex(key, attempt);
-            if (!occupied[index] || !deleted[index]) //한번도사용 안했고, 지워진적도 없다면
+            if (!occupied[index] && !deleted[index]) //한번도사용 안했고, 지워진적도 없다면
             {
                 return -1;
             }
